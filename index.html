@@ -3,25 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TACTICAL IMPACT MONITOR v5.4</title>
+    <title>TACTICAL IMPACT MONITOR v6.7</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Roboto+Mono:wght@500&display=swap');
 
         :root {
-            --bg-dark: #0f1113;
-            --card-bg: #1a1d21;
-            --accent-blue: #4B2397;
-            --accent-green: #00e676;
-            --accent-orange: #ff9100;
-            --accent-red: #ff1744;
-            --text-main: #e0e0e0;
-            --text-sub: #78909c;
+            --bg-light: #f4f6f8;       /* 薄いグレー */
+            --card-bg: #ffffff;        /* 白 */
+            --accent-sakura: #ffb7c5;  /* さくら色 */
+            --accent-sky: #87ceeb;     /* 空色 */
+            --text-main: #333d47;      /* 濃いグレー */
+            --text-sub: #90a4ae;       /* 補助文字 */
             --font-mono: 'Roboto Mono', monospace;
             --header-height: 60px;
         }
 
         body {
-            background-color: var(--bg-dark);
+            background-color: var(--bg-light);
             color: var(--text-main);
             font-family: 'Noto Sans JP', sans-serif;
             margin: 0;
@@ -31,106 +29,157 @@
             flex-direction: column;
             align-items: center;
             user-select: none; 
+            /* ダブルタップズームを防止 */
+            touch-action: manipulation;
         }
 
+        /* ヘッダー：UTCを中央、msボタンを右寄せ */
         .sticky-header {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: var(--header-height);
-            background: rgba(26, 29, 33, 0.95);
-            backdrop-filter: blur(8px);
-            border-bottom: 1px solid #333;
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid #e0e0e0;
             z-index: 1000;
-            display: flex;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: 60px 1fr 60px;
             align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
 
-        .header-content {
-            width: 100%;
-            max-width: 440px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 0 15px;
+        .utc-display { 
+            grid-column: 2;
+            justify-self: center;
+            font-size: 1.6em; 
+            color: var(--text-main); 
+            font-family: var(--font-mono); 
+            font-weight: bold; 
+        }
+
+        .ms-toggle {
+            grid-column: 3;
+            justify-self: start;
+            background: transparent;
+            border: 1px solid #ddd;
+            color: #ccc;
+            font-size: 0.7em;
+            width: 34px;
+            height: 24px;
+            padding: 0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            transition: 0.2s;
+            touch-action: manipulation;
+        }
+        .ms-toggle.active {
+            background: var(--accent-sky);
+            border-color: var(--accent-sky);
+            color: white;
         }
 
         .app-title {
             font-size: 0.8em;
-            color: var(--accent-blue);
+            color: var(--text-sub);
             font-weight: bold;
             letter-spacing: 1px;
-            text-align: center;
-            margin-bottom: 4px;
+            margin-bottom: 12px;
         }
 
         .card {
             background: var(--card-bg);
             border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 8px;
+            padding: 16px;
+            margin-bottom: 10px;
             width: 100%;
             max-width: 440px;
             box-sizing: border-box;
+            border: 1px solid #eee;
         }
 
-        .utc-display { font-size: 1.4em; color: var(--accent-green); font-family: var(--font-mono); }
-        .toggle-btn { background: #2c313a; border: 1px solid #555; color: #fff; font-size: 0.7em; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
-        .toggle-btn.paused { background: var(--accent-red); border-color: var(--accent-red); }
+        .settings-label { font-size: 0.75em; color: var(--text-sub); margin-bottom: 6px; display: block; font-weight: bold; }
 
-        .settings-label { font-size: 0.7em; color: var(--text-sub); margin-bottom: 4px; display: block; text-transform: uppercase; }
+        .num-input, .select-input { 
+            width: 100%; 
+            background: #fff; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            color: var(--text-main); 
+            font-family: var(--font-mono); 
+            font-size: 1.1em; 
+            padding: 10px; 
+            box-sizing: border-box; 
+            text-align: center;
+            outline: none;
+            touch-action: manipulation;
+        }
 
-        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .num-input::-webkit-inner-spin-button, .num-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        .num-input { -moz-appearance: textfield; }
-        .num-input, .select-input { width: 100%; background: #2c313a; border: 1px solid #444; border-radius: 4px; color: var(--accent-green); font-family: var(--font-mono); font-size: 1.1em; padding: 8px; box-sizing: border-box; text-align: center; }
+        .rally-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+        .rally-opt { background: #f8f9fa; border: 1px solid #eee; border-radius: 4px; text-align: center; padding: 10px 0; font-size: 0.9em; cursor: pointer; color: var(--text-sub); touch-action: manipulation; }
+        .rally-opt.active { background: var(--accent-sky); border-color: var(--accent-sky); color: white; font-weight: bold; }
 
-        .rally-selector { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 12px; }
-        .rally-opt { background: #2c313a; border: 1px solid #444; border-radius: 4px; text-align: center; padding: 8px 0; font-size: 0.8em; cursor: pointer; color: var(--text-sub); }
-        .rally-opt.active { background: var(--accent-blue); border-color: var(--accent-blue); color: white; font-weight: bold; }
-
-        .control-row { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
-        input[type="range"] { flex-grow: 1; accent-color: var(--accent-blue); }
-        .step-btn { width: 44px; height: 44px; background: #2c313a; border: 1px solid #444; border-radius: 4px; color: white; font-size: 1.2em; flex-shrink: 0; }
-        .val-display { min-width: 55px; text-align: right; font-size: 1em; color: var(--accent-green); font-family: var(--font-mono); }
-
-        .main-btn { width: 100%; padding: 16px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; font-size: 1.1em; font-weight: bold; margin-top: 5px; cursor: pointer; }
+        .control-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        input[type="range"] { flex-grow: 1; accent-color: var(--accent-sky); touch-action: manipulation; }
         
-        .copy-container { margin-top: 12px; }
-        .copy-area { background: #000; padding: 12px; border-radius: 4px; font-family: var(--font-mono); font-size: 1.1em; color: var(--accent-green); white-space: pre-wrap; text-align: left; border: 1px solid #333; line-height: 1.4; margin-bottom: 8px; user-select: text; }
-        .copy-btn { width: 100%; padding: 10px; background: #2c313a; color: var(--text-main); border: 1px solid #444; border-radius: 6px; font-size: 0.9em; font-weight: bold; cursor: pointer; }
+        .step-btn { 
+            width: 40px; height: 40px; 
+            background: #eee; border: none; 
+            border-radius: 4px; color: var(--text-main); 
+            font-size: 1.2em; cursor: pointer;
+            touch-action: manipulation;
+        }
+        .step-btn:active { background: #ddd; }
 
-        .summary-card { background: rgba(255,255,255,0.03); border: 1px solid #333; }
+        .main-btn { 
+            width: 100%; padding: 14px; 
+            background: var(--accent-sakura); color: white; 
+            border: none; border-radius: 4px; 
+            font-size: 1.1em; font-weight: bold; 
+            margin-top: 5px; cursor: pointer;
+            touch-action: manipulation;
+        }
+        .main-btn:active { opacity: 0.8; }
+        
+        .copy-area { 
+            background: #fafafa; padding: 12px; border-radius: 4px; 
+            font-family: var(--font-mono); font-size: 1.1em; 
+            color: var(--text-main); white-space: pre-wrap; 
+            text-align: left; border: 1px solid #eee; 
+            line-height: 1.4; margin-bottom: 10px; 
+        }
+        .copy-btn { 
+            width: 100%; padding: 10px; 
+            background: transparent; color: var(--text-sub); 
+            border: 1px solid #ddd; border-radius: 4px; 
+            font-size: 0.9em; cursor: pointer; 
+            touch-action: manipulation;
+        }
+
+        .summary-card { border-top: 3px solid var(--accent-sky); }
         .summary-item { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
-        .summary-label { font-size: 0.8em; color: var(--text-sub); }
-        .summary-val { font-size: 1.1em; font-family: var(--font-mono); color: #fff; }
-
-        .action-card { border: 2px solid var(--accent-blue); background: #111; text-align: center; padding: 15px 10px; margin-top: 8px; }
-        .action-title { font-size: 0.7em; color: var(--text-sub); margin-bottom: 4px; }
-        .action-time { font-size: 1.4em; font-family: var(--font-mono); color: #fff; margin-bottom: 12px; border-bottom: 1px solid #333; display: inline-block; padding: 0 20px; }
-        .status-container { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .status-label { font-size: 1.0em; font-weight: bold; color: var(--accent-blue); margin-bottom: -5px; }
-        .cd-val { font-size: 5.0em; font-family: var(--font-mono); font-weight: bold; line-height: 1.1; color: var(--accent-green); letter-spacing: -2px; }
-        .buffer-badge { color: var(--accent-blue); font-size: 0.85em; font-weight: bold; border: 1px solid var(--accent-blue); padding: 0 4px; border-radius: 3px; }
+        .summary-label { font-size: 0.85em; color: var(--text-sub); font-weight: bold; }
+        .summary-val { font-size: 1.4em; font-family: var(--font-mono); color: var(--text-main); font-weight: bold; }
+        
+        .buffer-badge { 
+            color: var(--accent-sky); font-size: 0.8em; 
+            background: #eef9ff; padding: 2px 6px; 
+            border-radius: 4px; font-family: var(--font-mono);
+        }
     </style>
 </head>
 <body>
 
     <header class="sticky-header">
-        <div class="header-content">
-            <div id="current-utc" class="utc-display">00:00:00.00</div>
-            <button id="pause-btn" class="toggle-btn" onclick="togglePause()">PAUSE</button>
-        </div>
+        <div id="current-utc" class="utc-display">00:00:00</div>
+        <button id="ms-toggle-btn" class="ms-toggle" onclick="toggleMs()">ms</button>
     </header>
 
-    <div class="app-title">TACTICAL IMPACT MONITOR v5.4</div>
+    <div class="app-title">TACTICAL IMPACT MONITOR v6.7</div>
 
     <div class="card">
-        <span class="settings-label">ターゲット選択</span>
-        <select id="target-name" class="select-input" onchange="calcRally()" style="margin-bottom:12px; color: #fff; font-weight: bold;">
+        <span class="settings-label">ターゲット</span>
+        <select id="target-name" class="select-input" onchange="calcRally()" style="margin-bottom:12px;">
             <option value="STF">STF</option>
             <option value="YDK">YDK</option>
             <option value="敵">敵</option>
@@ -139,85 +188,56 @@
 
         <span class="settings-label">集結モード</span>
         <div class="rally-selector">
-            <div class="rally-opt" onclick="setRallyBase(60, this)">1min</div>
             <div class="rally-opt active" onclick="setRallyBase(300, this)">5min</div>
             <div class="rally-opt" onclick="setRallyBase(600, this)">10min</div>
         </div>
 
-        <div class="input-row">
-            <div>
-                <span class="settings-label"><span class="target-label">STF</span>の行軍 (s)</span>
-                <input type="number" id="other-s" class="num-input" value="45" inputmode="numeric" 
-                       onfocus="this.value=''" oninput="validateNumInput(this)">
-            </div>
-            <div>
-                <span class="settings-label">自分の行軍 (s)</span>
-                <input type="number" id="my-s" class="num-input" value="40" inputmode="numeric" 
-                       onfocus="this.value=''" oninput="validateNumInput(this)">
-            </div>
+        <div style="margin-bottom:12px;">
+            <span class="settings-label"><span class="target-label">STF</span>への行軍時間 (s)</span>
+            <input type="number" id="other-s" class="num-input" value="45" inputmode="numeric" onfocus="this.select()" oninput="calcRally()">
         </div>
 
         <span class="settings-label">集結残り時間</span>
         <div class="control-row">
             <button class="step-btn" onclick="step('rem-time', -1)">−</button>
-            <input type="range" id="rem-time-s" min="0" max="300" value="300" oninput="syncRem(this.value)">
+            <input type="range" id="rem-time-s" min="0" max="600" value="300" oninput="syncRem(this.value)">
             <button class="step-btn" onclick="step('rem-time', 1)">+</button>
             <div class="val-display" id="rem-time-val">5:00</div>
         </div>
 
-        <span class="settings-label">着弾バッファー</span>
-        <select id="buffer-s" class="select-input" onchange="calcRally()" style="margin-bottom:10px;">
-            <option value="0">0s (ジャスト)</option>
-            <option value="10">10s</option>
-            <option value="20" selected>20s</option>
-            <option value="30">30s</option>
-            <option value="40">40s</option>
-            <option value="50">50s</option>
-            <option value="60">60s</option>
-        </select>
+        <span class="settings-label">着弾バッファー (s)</span>
+        <input type="number" id="buffer-s" class="num-input" value="20" inputmode="numeric" style="margin-bottom:16px;" onfocus="this.select()" oninput="calcRally()">
 
         <button class="main-btn" onclick="calcRally()">SYNC DATA</button>
-
-        <div class="copy-container">
-            <div id="copy-text" class="copy-area">--</div>
-            <button class="copy-btn" onclick="copyLogic()">COPY FOR CHAT</button>
-        </div>
     </div>
 
     <div class="card summary-card">
         <div class="summary-item">
-            <span class="summary-label"><span class="target-label">STF</span>着弾</span>
-            <span id="arrival-target-display" class="summary-val">UTC: 00:00:00</span>
+            <span class="summary-label"><span class="target-label">STF</span> 着弾</span>
+            <span id="arrival-target-display" class="summary-val">00:00:00</span>
         </div>
-        <div class="summary-item" style="border-top: 1px dashed #333; margin-top: 4px; padding-top: 8px;">
-            <span class="summary-label"><span class="target-label">STF</span>着弾 <span id="buffer-label-small" style="color:var(--accent-blue)">(buffer+20s)</span></span>
-            <span id="arrival-my-display" class="summary-val" style="color:var(--accent-blue);">UTC: 00:00:00</span>
+        <div class="summary-item" style="border-top: 1px solid #f8f8f8; margin-top: 4px; padding-top: 8px;">
+            <span class="summary-label">
+                自軍着弾
+                <span id="buffer-val-badge" class="buffer-badge">+20s</span>
+            </span>
+            <span id="arrival-my-display" class="summary-val" style="color:var(--accent-sky);">00:00:00</span>
         </div>
     </div>
 
-    <div class="card action-card">
-        <div class="action-title">出征予定時刻 (Buffer込 <span id="buffer-val-badge" class="buffer-badge">+20s</span>)</div>
-        <div id="target-time-display" class="action-time">00:00:00</div>
-        <div class="status-container">
-            <div id="status-label" class="status-label">あなたの行軍開始まで残り</div>
-            <div id="cd-rally" class="cd-val">0.00</div>
-        </div>
+    <div class="card">
+        <div id="copy-text" class="copy-area">--</div>
+        <button class="copy-btn" onclick="copyLogic()">COPY FOR CHAT</button>
     </div>
 
     <script>
-        let targetActionMs = 0;
-        let isPaused = false;
+        let showMs = false; 
 
-        function validateNumInput(el) {
-            el.value = el.value.replace(/[^0-9]/g, '');
-            calcRally();
-        }
-
-        function togglePause() {
-            isPaused = !isPaused;
-            const btn = document.getElementById('pause-btn');
-            if (isPaused) { btn.innerText = "RESUME"; btn.classList.add('paused'); }
-            else { btn.innerText = "PAUSE"; btn.classList.remove('paused'); calcRally(); }
+        function toggleMs() {
+            showMs = !showMs;
+            const btn = document.getElementById('ms-toggle-btn');
+            if (showMs) btn.classList.add('active');
+            else btn.classList.remove('active');
         }
 
         function setRallyBase(sec, el) {
@@ -237,7 +257,7 @@
 
         function step(id, delta) {
             const el = document.getElementById(id + '-s');
-            const newVal = Math.max(el.min, Math.min(el.max, parseInt(el.value) + delta));
+            const newVal = Math.max(0, Math.min(parseInt(el.max), parseInt(el.value) + delta));
             syncRem(newVal);
         }
 
@@ -254,69 +274,34 @@
         }
 
         setInterval(() => {
-            if (isPaused) return;
             const now = new Date();
             const h = String(now.getUTCHours()).padStart(2, '0');
             const m = String(now.getUTCMinutes()).padStart(2, '0');
             const s = String(now.getUTCSeconds()).padStart(2, '0');
-            const ms = String(Math.floor(now.getUTCMilliseconds() / 10)).padStart(2, '0');
-            document.getElementById('current-utc').innerText = `${h}:${m}:${s}.${ms}`;
             
-            if (targetActionMs > 0) {
-                const diff = (targetActionMs - now.getTime()) / 1000;
-                const cdEl = document.getElementById('cd-rally');
-                const label = document.getElementById('status-label');
-                const actionCard = document.querySelector('.action-card');
-
-                if (diff > 0) {
-                    cdEl.innerText = diff.toFixed(2);
-                    label.innerText = "あなたの行軍開始まで残り";
-                    if (diff > 30) {
-                        label.style.color = "var(--accent-blue)";
-                        cdEl.style.color = "var(--accent-green)";
-                        actionCard.style.borderColor = "var(--accent-blue)";
-                    } else if (diff > 10) {
-                        label.style.color = "var(--accent-orange)";
-                        cdEl.style.color = "var(--accent-orange)";
-                        actionCard.style.borderColor = "var(--accent-orange)";
-                    } else {
-                        label.style.color = "var(--accent-red)";
-                        cdEl.style.color = "var(--accent-red)";
-                        actionCard.style.borderColor = "var(--accent-red)";
-                    }
-                } else if (diff > -2) {
-                    cdEl.innerText = "GO!";
-                    label.innerText = "行軍開始"; label.style.color = "var(--accent-green)";
-                    cdEl.style.color = "white";
-                    actionCard.style.borderColor = "var(--accent-green)";
-                } else {
-                    cdEl.innerText = "0.00";
-                    label.innerText = "終了"; label.style.color = "#555";
-                    cdEl.style.color = "#555";
-                    actionCard.style.borderColor = "#333";
-                }
+            let timeStr = `${h}:${m}:${s}`;
+            if (showMs) {
+                const ms = String(Math.floor(now.getUTCMilliseconds() / 10)).padStart(2, '0');
+                timeStr += `.${ms}`;
             }
+            document.getElementById('current-utc').innerText = timeStr;
         }, 10);
 
         function calcRally() {
             const nowMs = Date.now();
             const remSec = parseInt(document.getElementById('rem-time-s').value) || 0;
             const otherSec = parseInt(document.getElementById('other-s').value) || 0;
-            const mySec = parseInt(document.getElementById('my-s').value) || 0;
             const bufferSec = parseInt(document.getElementById('buffer-s').value) || 0;
             const targetName = document.getElementById('target-name').value;
 
             document.querySelectorAll('.target-label').forEach(el => el.innerText = targetName);
+            document.getElementById('buffer-val-badge').innerText = `+${bufferSec}s`;
             
             const arrivalTargetMs = nowMs + ((remSec + otherSec) * 1000);
             const myArrivalMs = arrivalTargetMs + (bufferSec * 1000);
-            targetActionMs = myArrivalMs - (mySec * 1000);
 
-            document.getElementById('arrival-target-display').innerText = "UTC: " + formatFullUTC(arrivalTargetMs);
-            document.getElementById('arrival-my-display').innerText = "UTC: " + formatFullUTC(myArrivalMs);
-            document.getElementById('target-time-display').innerText = formatFullUTC(targetActionMs);
-            document.getElementById('buffer-val-badge').innerText = `+${bufferSec}s`;
-            document.getElementById('buffer-label-small').innerText = `(buffer+${bufferSec}s)`;
+            document.getElementById('arrival-target-display').innerText = formatFullUTC(arrivalTargetMs);
+            document.getElementById('arrival-my-display').innerText = formatFullUTC(myArrivalMs);
 
             const copyTxt = `${targetName}着弾(buffer+${bufferSec}s)\n${formatShortUTC(myArrivalMs)}`;
             document.getElementById('copy-text').innerText = copyTxt;
@@ -327,9 +312,10 @@
             if(txt === "--") return;
             navigator.clipboard.writeText(txt).then(() => {
                 const btn = document.querySelector('.copy-btn');
-                btn.innerText = "COPIED!"; btn.style.background = "var(--accent-green)"; btn.style.color = "#000";
+                const originalText = btn.innerText;
+                btn.innerText = "COPIED!"; btn.style.color = "var(--accent-sakura)";
                 setTimeout(() => { 
-                    btn.innerText = "COPY FOR CHAT"; btn.style.background = "#2c313a"; btn.style.color = "var(--text-main)";
+                    btn.innerText = originalText; btn.style.color = "var(--text-sub)";
                 }, 1000);
             });
         }
