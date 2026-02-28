@@ -1,291 +1,358 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TACTICAL IMPACT MONITOR v5.7</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Roboto+Mono:wght@500&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TACTICAL TERMINAL - POINT 13.8 FINAL-FIX (v6)</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
-        :root {
-            --bg-dark: #0f1113;
-            --card-bg: #1a1d21;
-            --accent-blue: #7B4DFF; /* 明るめの紫に変更 */
-            --accent-green: #00e676;
-            --accent-orange: #ff9100;
-            --accent-red: #ff1744;
-            --text-main: #e0e0e0;
-            --text-sub: #78909c;
-            --font-mono: 'Roboto Mono', monospace;
-            --header-height: 60px;
-        }
+:root {
+    --bg-color: #020205;
+    --panel-bg: #000000;
+    --neon-green: #39ff14;
+    --neon-pink: #ff007f;
+    --neon-purple: #9d00ff;
+    --neon-yellow: #ffff00;
+    --font-main: 'Share Tech Mono', monospace;
+}
 
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            font-family: 'Noto Sans JP', sans-serif;
-            margin: 0;
-            padding: 8px;
-            padding-top: calc(var(--header-height) + 20px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            user-select: none; 
-        }
+html, body { height: 100vh; margin: 0; padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+body { background: var(--bg-color); color: #e0e0e0; font-family: var(--font-main); padding: 5px; box-sizing: border-box; }
 
-        .sticky-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: var(--header-height);
-            background: rgba(26, 29, 33, 0.95);
-            backdrop-filter: blur(8px);
-            border-bottom: 1px solid #333;
-            z-index: 1000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
+.unit-container { background: var(--panel-bg); border: 1px solid var(--neon-purple); display: flex; flex-direction: column; min-height: 0; }
+.unit-title { background: rgba(157, 0, 255, 0.1); border-bottom: 1px solid var(--neon-purple); color: var(--neon-purple); font-size: 0.7rem; font-weight: bold; padding: 2px 8px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
 
-        .app-title {
-            font-size: 0.8em;
-            color: var(--accent-blue);
-            font-weight: bold;
-            letter-spacing: 1px;
-            text-align: center;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-        }
+.utc-header { flex: 0 0 auto; margin-bottom: 5px; position: relative; }
+.server-time-main { font-size: clamp(2.5rem, 9.5vh, 6.5rem); font-weight: bold; color: var(--neon-green); text-align: center; line-height: 1.2; }
+.offset-ctrl { position: absolute; right: 10px; bottom: 5px; display: flex; align-items: center; gap: 5px; }
+.offset-label { font-size: 0.6rem; color: var(--neon-purple); }
 
-        .card {
-            background: var(--card-bg);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 8px;
-            width: 100%;
-            max-width: 440px;
-            box-sizing: border-box;
-        }
+.main-layout { flex: 1; display: grid; grid-template-columns: 1fr 350px; gap: 8px; min-height: 0; width: 100%; box-sizing: border-box; }
+.left-column, .right-column { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
 
-        .utc-display { font-size: 1.6em; color: var(--accent-green); font-family: var(--font-mono); font-weight: bold; }
+/* Analyzer Section */
+.analyzer-unit { flex: 0 0 auto; }
+.analyzer-grid { display: grid; grid-template-columns: 1fr 140px 1fr; align-items: center; padding: 8px; gap: 5px; }
 
-        .settings-label { font-size: 0.7em; color: var(--text-sub); margin-bottom: 4px; display: block; text-transform: uppercase; }
+/* Table Section */
+.sync-height-unit { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.table-wrapper { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.rally-table { width: 100%; height: 100%; border-collapse: collapse; table-layout: fixed; }
+.rally-table th { color: var(--neon-pink); background: #0d0005; border-bottom: 2px solid var(--neon-pink); font-size: 0.8rem; padding: 4px 1px; letter-spacing: 0.05rem; }
+.rally-row { border-bottom: 1px solid #1a0a10; height: 16.6%; }
+td { text-align: center; border-right: 1px solid #1a0a10; padding: 1px; }
+.input-name { width: 95%; border: none; border-left: 3px solid var(--neon-pink); color: #fff; background: transparent; text-align: left; font-size: 1.1rem; font-weight: bold; height: auto; padding-left: 4px; box-sizing: border-box; }
 
-        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .num-input::-webkit-inner-spin-button, .num-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        .num-input { -moz-appearance: textfield; }
-        .num-input, .select-input { width: 100%; background: #2c313a; border: 1px solid #444; border-radius: 4px; color: var(--accent-green); font-family: var(--font-mono); font-size: 1.1em; padding: 8px; box-sizing: border-box; text-align: center; }
+.cd-display { font-size: clamp(1.8rem, 5.0vh, 2.3rem); font-weight: bold; line-height: 0.9; font-variant-numeric: tabular-nums; }
+.sub-time { font-size: clamp(0.6rem, 1.2vh, 0.85rem); font-weight: bold; display: block; margin-top: 1px; }
 
-        .rally-selector { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 12px; }
-        .rally-opt { background: #2c313a; border: 1px solid #444; border-radius: 4px; text-align: center; padding: 8px 0; font-size: 0.8em; cursor: pointer; color: var(--text-sub); }
-        .rally-opt.active { background: var(--accent-blue); border-color: var(--accent-blue); color: white; font-weight: bold; }
+/* Precision Strike Timer Layout Fix */
+.strike-inner { padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.params-vertical { display: flex; flex-direction: column; gap: 6px; }
+.param-group { display: flex; align-items: center; gap: 10px; justify-content: flex-start; }
+.param-label { font-size: 0.7rem; color: #aaa; width: 6.0rem; text-align: left; flex-shrink: 0; }
+.jst-hint { font-size: 0.65rem; color: var(--neon-yellow); font-weight: bold; white-space: nowrap; }
 
-        .control-row { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
-        input[type="range"] { flex-grow: 1; accent-color: var(--accent-blue); }
-        .step-btn { width: 44px; height: 44px; background: #2c313a; border: 1px solid #444; border-radius: 4px; color: white; font-size: 1.2em; flex-shrink: 0; cursor: pointer; }
-        .val-display { min-width: 55px; text-align: right; font-size: 1em; color: var(--accent-green); font-family: var(--font-mono); }
+.rally-btn { flex: 1; cursor: pointer; background: transparent; color: var(--neon-green); border: 1px solid var(--neon-green); font-size: 0.65rem; height: 1.4rem; font-family: inherit; }
+.rally-btn.active { background: var(--neon-green); color: #000; }
 
-        .main-btn { width: 100%; padding: 16px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; font-size: 1.1em; font-weight: bold; margin-top: 5px; cursor: pointer; }
+input { background: #0a000a; color: #ffffff; border: 1px solid var(--neon-purple); font-family: inherit; font-size: 0.85rem; text-align: center; height: 1.4rem; box-sizing: border-box; }
 
-        .summary-card { background: rgba(255,255,255,0.03); border: 1px solid #333; }
-        .summary-item { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
-        .summary-label { font-size: 0.8em; color: var(--text-sub); }
-        .summary-val { font-size: 1.1em; font-family: var(--font-mono); color: #fff; }
+.btn-container { display: flex; flex-direction: row; gap: 4px; padding: 0 4px; justify-content: center; height: 80%; }
+.op-btn { flex: 1; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.65rem; border: none; padding: 10px 0; border-radius: 2px; text-transform: uppercase; min-width: 35px; height: 100%; }
+.btn-exec { background: var(--neon-green); color: #000; }
+.btn-clr { background: var(--neon-pink); color: #000; }
 
-        .action-card { border: 2px solid var(--accent-blue); background: #111; text-align: center; padding: 15px 10px; margin-top: 8px; }
-        .action-title { font-size: 0.7em; color: var(--text-sub); margin-bottom: 4px; }
-        .action-time { font-size: 1.4em; font-family: var(--font-mono); color: #fff; margin-bottom: 12px; border-bottom: 1px solid #333; display: inline-block; padding: 0 20px; }
-        .status-container { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .status-label { font-size: 1.0em; font-weight: bold; color: var(--accent-blue); margin-bottom: -5px; }
-        .cd-val { font-size: 5.0em; font-family: var(--font-mono); font-weight: bold; line-height: 1.1; color: var(--accent-green); letter-spacing: -2px; }
-        .buffer-badge { color: var(--accent-blue); font-size: 0.85em; font-weight: bold; border: 1px solid var(--accent-blue); padding: 0 4px; border-radius: 3px; }
-    </style>
+.timer-display { font-size: 1.8rem; font-weight: bold; color: #fff; line-height: 1; }
+.adj-btn { background: rgba(157, 0, 255, 0.1); color: var(--neon-purple); border: 1px solid rgba(157, 0, 255, 0.5); width: 22px; height: 15px; cursor: pointer; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; user-select: none; }
+.rally-adj-btn { background: rgba(157, 0, 255, 0.1); color: var(--neon-purple); border: 1px solid rgba(157, 0, 255, 0.5); width: 16px; height: 1.2rem; cursor: pointer; font-size: 0.5rem; user-select: none; }
+
+.side-active-btn { width: 70px; height: 45px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 0.7rem; border: 1.5px solid; background: transparent; }
+.strat-log { flex: 1; background: #000; color: var(--neon-green); font-family: inherit; width: 100%; box-sizing: border-box; padding: 10px; resize: none; border: none; outline: none; font-size: 0.9rem; line-height: 1.4; overflow-y: auto; }
+</style>
 </head>
 <body>
 
-    <header class="sticky-header">
-        <div id="current-utc" class="utc-display">00:00:00.00</div>
-    </header>
+<div class="unit-container utc-header">
+    <div class="server-time-main"><span id="utc-main">00:00:00</span><span style="font-size:0.5em;color:#1a4d1a" id="utc-ms">.0</span></div>
+    <div class="offset-ctrl">
+        <span class="offset-label">UTC OFFSET(sec)</span>
+        <input type="number" id="utc-offset" step="0.1" value="0.0" style="width:3.5rem; border-color:var(--neon-pink); color:var(--neon-pink);">
+    </div>
+</div>
 
-    <div class="app-title">TACTICAL IMPACT MONITOR v5.7</div>
-
-    <div class="card">
-        <span class="settings-label">ターゲット選択</span>
-        <select id="target-name" class="select-input" onchange="calcRally()" style="margin-bottom:12px; color: #fff; font-weight: bold;">
-            <option value="STF">STF</option>
-            <option value="YDK">YDK</option>
-            <option value="敵">敵</option>
-            <option value="敵ゴースト">敵ゴースト</option>
-        </select>
-
-        <span class="settings-label">集結モード</span>
-        <div class="rally-selector">
-            <div class="rally-opt" onclick="setRallyBase(60, this)">1min</div>
-            <div class="rally-opt active" onclick="setRallyBase(300, this)">5min</div>
-            <div class="rally-opt" onclick="setRallyBase(600, this)">10min</div>
-        </div>
-
-        <div class="input-row">
-            <div>
-                <span class="settings-label"><span class="target-label">STF</span>の行軍 (s)</span>
-                <input type="number" id="other-s" class="num-input" value="45" inputmode="numeric" 
-                       onfocus="this.value=''" oninput="validateNumInput(this)">
+<div class="main-layout">
+    <div class="left-column">
+        <div class="unit-container analyzer-unit">
+            <div class="unit-title">
+                <span>Capture Analyzer</span>
+                <div style="display:flex; align-items:center; gap:5px;">
+                    <span style="font-size:0.55rem; color:#aaa;">DEADLINE(UTC):</span>
+                    <input type="time" id="deadline-input" value="17:00" style="width:4.5rem; height:1rem; font-size:0.7rem; background:#111; color:var(--neon-yellow); border:1px solid var(--neon-yellow);">
+                </div>
             </div>
-            <div>
-                <span class="settings-label">自分の行軍 (s)</span>
-                <input type="number" id="my-s" class="num-input" value="40" inputmode="numeric" 
-                       onfocus="this.value=''" oninput="validateNumInput(this)">
+            <div class="analyzer-grid">
+                <div style="display:flex; align-items:center; justify-content:flex-end; gap:5px;">
+                    <div style="display:flex;flex-direction:column">
+                        <button class="adj-btn" onmousedown="startPress(adjPalace,'ally',3600)" onmouseup="stopPress()" onmouseleave="stopPress()">▲</button>
+                        <div id="ally-h" class="timer-display">00</div>
+                        <button class="adj-btn" onmousedown="startPress(adjPalace,'ally',-3600)" onmouseup="stopPress()" onmouseleave="stopPress()">▼</button>
+                    </div>
+                    <div class="timer-display">:</div>
+                    <div style="display:flex;flex-direction:column">
+                        <button class="adj-btn" onmousedown="startPress(adjPalace,'ally',60)" onmouseup="stopPress()" onmouseleave="stopPress()">▲</button>
+                        <div id="ally-m" class="timer-display">00</div>
+                        <button class="adj-btn" onmousedown="startPress(adjPalace,'ally',-60)" onmouseup="stopPress()" onmouseleave="stopPress()">▼</button>
+                    </div>
+                    <div class="timer-display">:</div>
+                    <div style="display:flex;flex-direction:column">
+                        <button class="adj-btn" onmousedown="startPress(adjPalace,'ally',1)" onmouseup="stopPress()" onmouseleave="stopPress()">▲</button>
+                        <div id="ally-s" class="timer-display">00</div>
+                        <button class="adj-btn" onmousedown="startPress(adjPalace,'ally',-1)" onmouseup="stopPress()" onmouseleave="stopPress()">▼</button>
+                    </div>
+                    <button id="btn-ally" class="side-active-btn" onclick="switchPalace('ally')" style="color:var(--neon-green); border-color:var(--neon-green); margin-left:5px;">ALLY</button>
+                </div>
+                <div style="text-align:center;">
+                    <div id="eta-view" style="font-size:0.6rem;color:var(--neon-purple);margin-bottom:4px; font-weight:bold;">EST. VICTORY: --:--</div>
+                    <button onclick="switchPalace(null)" style="cursor:pointer; font-family:inherit; font-weight:bold; width:100%; padding:5px; font-size:0.7rem; border:1px solid var(--neon-pink); background:#1a001a; color:var(--neon-pink);">PAUSE</button>
+                </div>
+                <div style="display:flex; align-items:center; gap:5px;">
+                    <button id="btn-enemy" class="side-active-btn" onclick="switchPalace('enemy')" style="color:var(--neon-pink); border-color:var(--neon-pink); margin-right:5px;">ENEMY</button>
+                    <div style="display:flex;flex-direction:column">
+                        <button class="adj-btn" onmousedown="startPress(adjPalace,'enemy',3600)" onmouseup="stopPress()" onmouseleave="stopPress()">▲</button>
+                        <div id="enemy-h" class="timer-display">00</div>
+                        <button class="adj-btn" onmousedown="startPress(adjPalace,'enemy',-3600)" onmouseup="stopPress()" onmouseleave="stopPress()">▼</button>
+                    </div>
+                    <div class="timer-display">:</div>
+                    <div style="display:flex;flex-direction:column">
+                        <button class="adj-btn" onmousedown="startPress(adjPalace,'enemy',60)" onmouseup="stopPress()" onmouseleave="stopPress()">▲</button>
+                        <div id="enemy-m" class="timer-display">00</div>
+                        <button class="adj-btn" onmousedown="startPress(adjPalace,'enemy',-60)" onmouseup="stopPress()" onmouseleave="stopPress()">▼</button>
+                    </div>
+                    <div class="timer-display">:</div>
+                    <div style="display:flex;flex-direction:column">
+                        <button class="adj-btn" onmousedown="startPress(adjPalace,'enemy',1)" onmouseup="stopPress()" onmouseleave="stopPress()">▲</button>
+                        <div id="enemy-s" class="timer-display">00</div>
+                        <button class="adj-btn" onmousedown="startPress(adjPalace,'enemy',-1)" onmouseup="stopPress()" onmouseleave="stopPress()">▼</button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <span class="settings-label">集結残り時間</span>
-        <div class="control-row">
-            <button class="step-btn" onclick="step('rem-time', -1)">−</button>
-            <input type="range" id="rem-time-s" min="0" max="300" value="300" oninput="syncRem(this.value)">
-            <button class="step-btn" onclick="step('rem-time', 1)">+</button>
-            <div class="val-display" id="rem-time-val">5:00</div>
-        </div>
-
-        <span class="settings-label">着弾バッファー (s)</span>
-        <div class="control-row">
-            <button class="step-btn" onclick="stepBuffer(-1)">−</button>
-            <input type="number" id="buffer-s" class="num-input" value="20" inputmode="numeric" 
-                   oninput="calcRally()">
-            <button class="step-btn" onclick="stepBuffer(1)">+</button>
-        </div>
-
-        <button class="main-btn" onclick="calcRally()">SYNC DATA</button>
-    </div>
-
-    <div class="card summary-card">
-        <div class="summary-item">
-            <span class="summary-label"><span class="target-label">STF</span>着弾</span>
-            <span id="arrival-target-display" class="summary-val">UTC: 00:00:00</span>
-        </div>
-        <div class="summary-item" style="border-top: 1px dashed #333; margin-top: 4px; padding-top: 8px;">
-            <span class="summary-label"><span class="target-label">STF</span>着弾 <span id="buffer-label-small" style="color:var(--accent-blue)">(buffer+20s)</span></span>
-            <span id="arrival-my-display" class="summary-val" style="color:var(--accent-blue);">UTC: 00:00:00</span>
+        <div class="unit-container sync-height-unit" style="border-color:var(--neon-pink);">
+            <div class="unit-title">Tactical Rally (6-SECTOR)</div>
+            <div class="table-wrapper">
+                <table class="rally-table">
+                    <thead>
+                        <tr>
+                            <th style="width:12%">Sector</th>
+                            <th style="width:23%">Target CD & Impact</th>
+                            <th style="width:23%">Launch CD & Launch</th>
+                            <th style="width:27%">Deploy Params</th>
+                            <th style="width:15%">Cmd</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rally-body"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <div class="card action-card">
-        <div class="action-title">出征予定時刻 (Buffer込 <span id="buffer-val-badge" class="buffer-badge">+20s</span>)</div>
-        <div id="target-time-display" class="action-time">00:00:00</div>
-        <div class="status-container">
-            <div id="status-label" class="status-label">あなたの行軍開始まで残り</div>
-            <div id="cd-rally" class="cd-val">0.00</div>
+    <div class="right-column">
+        <div class="unit-container" style="flex:0 0 auto; padding:5px;">
+            <div class="unit-title">Pet Buff Monitor</div>
+            <div style="text-align:center; padding:5px 0;">
+                <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
+                    <button class="adj-btn" onmousedown="startPress((_,v)=>adjBuff(v), null, -1)" onmouseup="stopPress()" onmouseleave="stopPress()">▼</button>
+                    <div id="buff-view" style="font-size:1.8rem; font-weight:bold; color:var(--neon-green); min-width: 120px;">00:00:00</div>
+                    <button class="adj-btn" onmousedown="startPress((_,v)=>adjBuff(v), null, 1)" onmouseup="stopPress()" onmouseleave="stopPress()">▲</button>
+                </div>
+                <button id="buff-toggle" onclick="toggleBuff()" style="background:var(--neon-pink); border:none; width:100%; cursor:pointer; font-weight:bold; font-size:0.8rem; padding:5px; margin-top:5px;">START (2h)</button>
+            </div>
+        </div>
+
+        <div class="unit-container" style="flex:0 0 auto; border-color:var(--neon-purple);">
+            <div class="unit-title">Precision Strike Timer</div>
+            <div class="strike-inner">
+                <div class="params-vertical">
+                    <div class="param-group">
+                        <span class="param-label">到着目標(UTC)</span>
+                        <input type="time" id="strike-target-time" step="1" value="16:00:00" style="width:7.5rem;">
+                        <span id="jst-view" class="jst-hint">JST: 01:00:00</span>
+                    </div>
+                    <div class="param-group">
+                        <span class="param-label">行軍時間(秒)</span>
+                        <input type="number" id="strike-march-sec" value="60" style="width:7.5rem;">
+                    </div>
+                    <div class="param-group">
+                        <span class="param-label">集結時間設定</span>
+                        <div style="display:flex; gap:2px; width:7.5rem;">
+                            <button id="rally-1m" class="rally-btn active" onclick="setStrikeRally(60)">1m</button>
+                            <button id="rally-5m" class="rally-btn" onclick="setStrikeRally(300)">5m</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align:center; margin-top:10px; border-top:1px solid #333; padding-top:10px;">
+                    <div id="strike-countdown" style="font-size:1.8rem; font-weight:bold; color:var(--neon-green); font-variant-numeric: tabular-nums;">00:00:00.0</div>
+                    <div id="strike-launch-utc" style="font-size:0.7rem; color:var(--neon-purple); margin-top:4px;">SET RALLY AT (UTC): --:--:--</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="unit-container sync-height-unit" style="flex:1;">
+            <div class="unit-title">Mission Memo</div>
+            <textarea class="strat-log" placeholder="COMMANDER'S LOG..."></textarea>
         </div>
     </div>
+</div>
 
-    <script>
-        let targetActionMs = 0;
+<script>
+const state = {
+    buffSec: 0, buffRun: false,
+    strikeRallySec: 60,
+    palace: { mode: null, ally: 0, enemy: 0, target: 9000, last: null },
+    rallies: Array.from({length:6}, (_,i)=>({
+        id:i, name:`TGT-0${i+1}`, active:false, startTs:0
+    }))
+};
 
-        function validateNumInput(el) {
-            el.value = el.value.replace(/[^0-9]/g, '');
-            calcRally();
-        }
+let pressTimer;
+let isPressing = false;
 
-        function setRallyBase(sec, el) {
-            document.querySelectorAll('.rally-opt').forEach(opt => opt.classList.remove('active'));
-            el.classList.add('active');
-            const slider = document.getElementById('rem-time-s');
-            slider.max = sec; slider.value = sec; syncRem(sec);
-        }
+function startPress(fn, id, v) { if (isPressing) return; isPressing = true; fn(id, v); pressTimer = setTimeout(() => { pressTimer = setInterval(() => { fn(id, v); }, 80); }, 400); }
+function stopPress() { clearTimeout(pressTimer); clearInterval(pressTimer); isPressing = false; }
+function fmt(sec){ if(sec<=0)return"00:00.0"; const m=Math.floor(sec/60), s=Math.floor(sec%60), ms=Math.floor((sec%1)*10); return`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${ms}`;}
+function toMS(sec) { const m = Math.floor(sec / 60); const s = Math.floor(sec % 60); return `${m}:${String(s).padStart(2, '0')}`; }
+function parseTimeStr(str) { if (!str.includes(':')) return parseInt(str) || 0; const parts = str.split(':'); return (parseInt(parts[0]) * 60) + (parseInt(parts[1]) || 0); }
+function handleQuickTimeInput(el) { let val = el.value.trim().replace(/:/g, ''); if (!val) return; let num = parseInt(val); if (isNaN(num)) return; if (val.length >= 3) { let s = num % 100; let m = Math.floor(num / 100); el.value = `${m}:${String(s).padStart(2, '0')}`; } }
+function adjRallyIn(id, v) { const el = document.getElementById(`in-er-${id}`); let sec = parseTimeStr(el.value); sec = Math.max(0, sec + v); el.value = toMS(sec); }
 
-        function syncRem(val) {
-            const m = Math.floor(val / 60);
-            const s = val % 60;
-            document.getElementById('rem-time-val').innerText = `${m}:${s.toString().padStart(2, '0')}`;
-            document.getElementById('rem-time-s').value = val;
-            calcRally();
-        }
+function initUI(){
+    const body = document.getElementById('rally-body');
+    body.innerHTML = "";
+    state.rallies.forEach(r=>{
+        const tr = document.createElement('tr'); tr.className='rally-row'; tr.id=`row-${r.id}`;
+        tr.innerHTML = `
+            <td><input type="text" class="input-name" value="" placeholder="${r.name}"></td>
+            <td><div class="cd-display cd-target" id="e-cd-${r.id}">00:00.0</div><span class="sub-time" id="e-utc-${r.id}" style="color:var(--neon-purple)">--:--:--</span></td>
+            <td><div class="cd-display cd-launch" id="s-cd-${r.id}">00:00.0</div><span class="sub-time" id="s-utc-${r.id}" style="color:var(--neon-green)">--:--:--</span></td>
+            <td>
+                <div class="params-grid" style="display:flex; align-items:center; justify-content:space-around; padding:2px; height:100%;">
+                    <div class="param-rally-box" style="display:flex; flex-direction:column; align-items:center; border-right:1px solid #222; padding-right:8px;">
+                        <span class="p-label-sm" style="font-size:0.55rem; color:#aaa;">集結時間</span>
+                        <div class="p-row" style="display:flex; align-items:center; gap:4px;">
+                            <button class="rally-adj-btn" onmousedown="startPress(adjRallyIn,${r.id},-1)" onmouseup="stopPress()" onmouseleave="stopPress()">▼</button>
+                            <input type="tel" id="in-er-${r.id}" value="5:00" pattern="[0-9:]*" inputmode="numeric" onblur="handleQuickTimeInput(this)" style="width:3.2rem;color:#fff;">
+                            <button class="rally-adj-btn" onmousedown="startPress(adjRallyIn,${r.id},1)" onmouseup="stopPress()" onmouseleave="stopPress()">▲</button>
+                        </div>
+                    </div>
+                    <div class="param-march-box" style="display:flex; flex-direction:column; gap:4px; padding-left:8px;">
+                        <div class="p-row" style="display:flex; align-items:center; justify-content:flex-end; gap:4px;"><span class="p-text" style="font-size:0.6rem; color:#888; width:2.5rem; text-align:right;">相手行軍</span><input type="number" id="in-em-${r.id}" value="60" style="width:2.8rem;color:#fff;"></div>
+                        <div class="p-row" style="display:flex; align-items:center; justify-content:flex-end; gap:4px;"><span class="p-text" style="font-size:0.6rem; color:#888; width:2.5rem; text-align:right;">自軍行軍</span><input type="number" id="in-sm-${r.id}" value="60" style="width:2.8rem;color:#fff;"></div>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div class="btn-container"><button onclick="startRally(${r.id})" class="op-btn btn-exec" id="btn-s-${r.id}">EXEC</button><button onclick="resetRally(${r.id})" class="op-btn btn-clr">CLR</button></div>
+            </td>`;
+        body.appendChild(tr);
+    });
+}
 
-        function step(id, delta) {
-            const el = document.getElementById(id + '-s');
-            const newVal = Math.max(el.min, Math.min(el.max, parseInt(el.value) + delta));
-            syncRem(newVal);
-        }
+function startRally(id){ const r=state.rallies[id]; const offset = parseFloat(document.getElementById('utc-offset').value) || 0; r.startTs=(Date.now()/1000) + offset; r.active=true; document.getElementById(`btn-s-${id}`).innerText="RLD"; }
+function resetRally(id){ state.rallies[id].active=false; ["e-cd","s-cd","e-utc","s-utc"].forEach(p=>{ const el = document.getElementById(`${p}-${id}`); if(el) { el.innerText=p.includes("utc")?"--:--:--":"00:00.0"; el.style.color = ""; } }); document.getElementById(`btn-s-${id}`).innerText="EXEC"; }
+function toggleBuff() { if (!state.buffRun) { state.buffSec = 7200; state.buffRun = true; document.getElementById('buff-toggle').innerText = "STOP / RESET"; document.getElementById('buff-toggle').style.background = "#555"; } else { state.buffRun = false; state.buffSec = 0; document.getElementById('buff-toggle').innerText = "START (2h)"; document.getElementById('buff-toggle').style.background = "var(--neon-pink)"; } }
+function adjBuff(v) { state.buffSec = Math.max(0, state.buffSec + v); renderBuffUI(); }
+function renderBuffUI() { const b = Math.max(0, state.buffSec); const bh = String(Math.floor(b / 3600)).padStart(2, '0'); const bm = String(Math.floor((b % 3600) / 60)).padStart(2, '0'); const bs = String(Math.floor(b % 60)).padStart(2, '0'); document.getElementById('buff-view').innerText = `${bh}:${bm}:${bs}`; }
+function setStrikeRally(sec) { state.strikeRallySec = sec; document.getElementById('rally-1m').classList.toggle('active', sec === 60); document.getElementById('rally-5m').classList.toggle('active', sec === 300); }
+function switchPalace(side){ state.palace.mode=side; state.palace.last=Date.now(); updatePalaceUI(); }
+function adjPalace(side, v){ state.palace[side]=Math.max(0, state.palace[side]+v); renderPalaceTimes(); }
+function updatePalaceUI(){ const bA=document.getElementById('btn-ally'), bE=document.getElementById('btn-enemy'); if(!bA || !bE) return; bA.style.background=state.palace.mode==='ally'?'var(--neon-green)':'transparent'; bA.style.color=state.palace.mode==='ally'?'#000':'var(--neon-green)'; bE.style.background=state.palace.mode==='enemy'?'var(--neon-pink)':'transparent'; bE.style.color=state.palace.mode==='enemy'?'#000':'var(--neon-pink)'; }
+function renderPalaceTimes(){ ['ally','enemy'].forEach(p=>{ const s=state.palace[p]||0; const h = document.getElementById(`${p}-h`); if(h) h.innerText=String(Math.floor(s/3600)).padStart(2,'0'); const m = document.getElementById(`${p}-m`); if(m) m.innerText=String(Math.floor((s%3600)/60)).padStart(2,'0'); const sc = document.getElementById(`${p}-s`); if(sc) sc.innerText=String(Math.floor(s%60)).padStart(2,'0'); }); }
 
-        function stepBuffer(delta) {
-            const el = document.getElementById('buffer-s');
-            const newVal = Math.max(0, parseInt(el.value || 0) + delta);
-            el.value = newVal;
-            calcRally();
-        }
+function update(){
+    const offset = parseFloat(document.getElementById('utc-offset').value) || 0;
+    const nowRaw = Date.now();
+    const nowWithOffset = nowRaw + (offset * 1000);
+    const nowS = nowWithOffset / 1000;
+    const d = new Date(nowWithOffset); 
+    
+    document.getElementById('utc-main').innerText = d.getUTCHours().toString().padStart(2,'0') + ":" + d.getUTCMinutes().toString().padStart(2,'0') + ":" + d.getUTCSeconds().toString().padStart(2,'0');
+    document.getElementById('utc-ms').innerText = `.${Math.floor(d.getUTCMilliseconds()/100)}`;
+    
+    if (state.buffRun && state.buffSec > 0) { state.buffSec -= 0.1; renderBuffUI(); if (state.buffSec <= 0) state.buffRun = false; }
 
-        function formatFullUTC(ms) {
-            const d = new Date(ms);
-            return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}:${String(d.getUTCSeconds()).padStart(2, '0')}`;
-        }
+    const deadlineStr = document.getElementById('deadline-input').value;
+    const [dH, dM] = deadlineStr.split(':').map(Number);
+    const deadline = new Date(nowWithOffset);
+    deadline.setUTCHours(dH, dM, 0, 0);
+    const remainingTime = Math.max(0, (deadline - d) / 1000);
 
-        setInterval(() => {
-            const now = new Date();
-            const h = String(now.getUTCHours()).padStart(2, '0');
-            const m = String(now.getUTCMinutes()).padStart(2, '0');
-            const s = String(now.getUTCSeconds()).padStart(2, '0');
-            const ms = String(Math.floor(now.getUTCMilliseconds() / 10)).padStart(2, '0');
-            document.getElementById('current-utc').innerText = `${h}:${m}:${s}.${ms}`;
+    if(state.palace.mode && state.palace.last){
+        const diff=(nowRaw-state.palace.last)/1000; state.palace.last=nowRaw;
+        state.palace[state.palace.mode]+=diff; renderPalaceTimes();
+    }
+
+    const etaView = document.getElementById('eta-view');
+    if (state.palace.ally > state.palace.enemy + remainingTime) {
+        etaView.innerText = "ALLY WIN SECURED"; etaView.style.color = "var(--neon-green)";
+    } else if (state.palace.enemy > state.palace.ally + remainingTime) {
+        etaView.innerText = "ENEMY WIN SECURED"; etaView.style.color = "var(--neon-pink)";
+    } else {
+        const lead = state.palace.ally >= state.palace.enemy ? 'ally' : 'enemy';
+        const rem = state.palace.target - state.palace[lead];
+        const victoryTime = new Date(nowWithOffset + rem * 1000);
+        etaView.innerText = "EST. VICTORY: " + victoryTime.getUTCHours().toString().padStart(2,'0') + ":" + victoryTime.getUTCMinutes().toString().padStart(2,'0');
+        etaView.style.color = "var(--neon-purple)";
+    }
+
+    state.rallies.forEach(r=>{
+        if(r.active){
+            // リアルタイムに入力値を読み込む
+            const currentRally = parseTimeStr(document.getElementById(`in-er-${id=r.id}`).value);
+            const currentEMarch = parseInt(document.getElementById(`in-em-${r.id}`).value) || 0;
+            const currentSMarch = parseInt(document.getElementById(`in-sm-${r.id}`).value) || 0;
+
+            const elapsed = nowS - r.startTs;
+            const eArrival = r.startTs + currentRally + currentEMarch;
+            const sLimit = eArrival - currentSMarch;
+
+            const targetElem = document.getElementById(`e-cd-${r.id}`);
+            const tRel = currentRally - elapsed;
+            if (tRel > 0) { targetElem.innerText = fmt(tRel); targetElem.style.color = ""; }
+            else { const upTime = Math.abs(tRel); if (upTime < currentEMarch) { targetElem.innerText = fmt(upTime); targetElem.style.color = "var(--neon-yellow)"; } else { targetElem.innerText = "IMPACT"; targetElem.style.color = "var(--neon-pink)"; } }
             
-            if (targetActionMs > 0) {
-                const diff = (targetActionMs - now.getTime()) / 1000;
-                const cdEl = document.getElementById('cd-rally');
-                const label = document.getElementById('status-label');
-                const actionCard = document.querySelector('.action-card');
-
-                if (diff > 0) {
-                    cdEl.innerText = diff.toFixed(2);
-                    label.innerText = "あなたの行軍開始まで残り";
-                    if (diff > 30) {
-                        label.style.color = "var(--accent-blue)";
-                        cdEl.style.color = "var(--accent-green)";
-                        actionCard.style.borderColor = "var(--accent-blue)";
-                    } else if (diff > 10) {
-                        label.style.color = "var(--accent-orange)";
-                        cdEl.style.color = "var(--accent-orange)";
-                        actionCard.style.borderColor = "var(--accent-orange)";
-                    } else {
-                        label.style.color = "var(--accent-red)";
-                        cdEl.style.color = "var(--accent-red)";
-                        actionCard.style.borderColor = "var(--accent-red)";
-                    }
-                } else if (diff > -2) {
-                    cdEl.innerText = "GO!";
-                    label.innerText = "行軍開始"; label.style.color = "var(--accent-green)";
-                    cdEl.style.color = "white";
-                    actionCard.style.borderColor = "var(--accent-green)";
-                } else {
-                    cdEl.innerText = "0.00";
-                    label.innerText = "終了"; label.style.color = "#555";
-                    cdEl.style.color = "#555";
-                    actionCard.style.borderColor = "#333";
-                }
-            }
-        }, 10);
-
-        function calcRally() {
-            const nowMs = Date.now();
-            const remSec = parseInt(document.getElementById('rem-time-s').value) || 0;
-            const otherSec = parseInt(document.getElementById('other-s').value) || 0;
-            const mySec = parseInt(document.getElementById('my-s').value) || 0;
-            const bufferSec = parseInt(document.getElementById('buffer-s').value) || 0;
-            const targetName = document.getElementById('target-name').value;
-
-            document.querySelectorAll('.target-label').forEach(el => el.innerText = targetName);
+            const launchElem = document.getElementById(`s-cd-${r.id}`);
+            const sRemain = sLimit - nowS;
+            if (sRemain > 0) { launchElem.innerText = fmt(sRemain); launchElem.style.color = (sRemain < 10) ? "var(--neon-pink)" : (sRemain < 30) ? "var(--neon-yellow)" : "var(--neon-green)"; }
+            else { const upTimeS = Math.abs(sRemain); if (upTimeS < currentSMarch) { launchElem.innerText = fmt(upTimeS); launchElem.style.color = "var(--neon-green)"; } else { launchElem.innerText = "IMPACT"; launchElem.style.color = "var(--neon-pink)"; } }
             
-            const arrivalTargetMs = nowMs + ((remSec + otherSec) * 1000);
-            const myArrivalMs = arrivalTargetMs + (bufferSec * 1000);
-            targetActionMs = myArrivalMs - (mySec * 1000);
-
-            document.getElementById('arrival-target-display').innerText = "UTC: " + formatFullUTC(arrivalTargetMs);
-            document.getElementById('arrival-my-display').innerText = "UTC: " + formatFullUTC(myArrivalMs);
-            document.getElementById('target-time-display').innerText = formatFullUTC(targetActionMs);
-            document.getElementById('buffer-val-badge').innerText = `+${bufferSec}s`;
-            document.getElementById('buffer-label-small').innerText = `(buffer+${bufferSec}s)`;
+            const arrD = new Date(eArrival * 1000); document.getElementById(`e-utc-${r.id}`).innerText = arrD.getUTCHours().toString().padStart(2,'0') + ":" + arrD.getUTCMinutes().toString().padStart(2,'0') + ":" + arrD.getUTCSeconds().toString().padStart(2,'0');
+            const limD = new Date(sLimit * 1000); document.getElementById(`s-utc-${r.id}`).innerText = limD.getUTCHours().toString().padStart(2,'0') + ":" + limD.getUTCMinutes().toString().padStart(2,'0') + ":" + limD.getUTCSeconds().toString().padStart(2,'0');
         }
-        
-        calcRally();
-    </script>
+    });
+
+    const stInput = document.getElementById('strike-target-time').value;
+    const stMarch = parseInt(document.getElementById('strike-march-sec').value) || 0;
+    if (stInput) {
+        const [h, m, s] = stInput.split(':').map(Number);
+        let jstH = (h + 9) % 24;
+        document.getElementById('jst-view').innerText = `JST: ${String(jstH).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s||0).padStart(2,'0')}`;
+        const tDate = new Date(nowWithOffset); tDate.setUTCHours(h, m, s || 0, 0);
+        if (tDate < d) tDate.setUTCDate(tDate.getUTCDate() + 1);
+        const lDate = new Date(tDate.getTime() - (stMarch * 1000) - (state.strikeRallySec * 1000));
+        const sRem = (lDate - d) / 1000;
+        const sDisp = document.getElementById('strike-countdown');
+        document.getElementById('strike-launch-utc').innerText = `SET RALLY AT (UTC): ${String(lDate.getUTCHours()).padStart(2,'0')}:${String(lDate.getUTCMinutes()).padStart(2,'0')}:${String(lDate.getUTCSeconds()).padStart(2,'0')}`;
+        if (sRem > 0) {
+            const sh = String(Math.floor(sRem / 3600)).padStart(2, '0'); const sm = String(Math.floor((sRem % 3600) / 60)).padStart(2, '0'); const ss = String(Math.floor(sRem % 60)).padStart(2, '0'); const sms = Math.floor((sRem % 1) * 10);
+            sDisp.innerText = `${sh}:${sm}:${ss}.${sms}`;
+        } else { sDisp.innerText = "START RALLY!!"; }
+    }
+}
+
+initUI(); renderPalaceTimes(); setInterval(update, 100);
+</script>
 </body>
 </html>
